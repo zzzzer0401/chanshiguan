@@ -1,0 +1,20 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
+<title>别吵，在刷好感呢！</title>
+<style>
+  :root { --bg: #F6E7D8; }
+  @media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) { --bg: #2B2320; } }
+  :root[data-theme="dark"] { --bg: #2B2320; }
+  html, body { margin: 0; height: 100%; background: var(--bg); overflow: hidden; -webkit-user-select: none; user-select: none; -webkit-tap-highlight-color: transparent; }
+  body { display: flex; align-items: center; justify-content: center; }
+  canvas { display: block; }
+  @media (min-width: 600px) { canvas { border-radius: 28px; box-shadow: 0 20px 60px rgba(91,58,41,.28); } }
+</style>
+</head>
+<body>
+<script type="module" src="game.js"></script>
+</body>
+</html>

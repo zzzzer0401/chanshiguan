@@ -1,0 +1,48 @@
+<!doctype html>
+<html><head><meta charset="utf-8"><title>关卡校验</title>
+<style>body{font:13px/1.5 Menlo,monospace;background:#fff;color:#222;padding:12px;white-space:pre}</style></head>
+<body><div id="out">running...</div>
+<script type="module">
+import { LEVELS, dailyLevel, todayKey } from '../js/levels.js';
+import { createGame, planDay, applyStep, nightAdvance, PET_DEFS, solve, bfs } from '../js/rules.js';
+const out = [];
+function run(def, cap) {
+  const s = createGame(Object.assign({}, def, { maxDays: cap }));
+  const log = [];
+  for (let g = 0; g < 20; g++) {
+    const t0 = performance.now();
+    const plan = planDay(s);
+    const ms = (performance.now() - t0).toFixed(0);
+    if (!plan) { log.push(`  D${s.day}: NO PLAN`); break; }
+    const acts = plan.steps.filter(x => x.t === 'act').map(x => s.pets[x.pet].kind[0] + ':' + x.type).join(',');
+    const moves = plan.steps.filter(x => x.t === 'move').length;
+    for (const st of plan.steps) applyStep(s, st);
+    log.push(`  D${s.day}: moves=${moves} acts=[${acts}] left=${s.stamina} aff=${s.pets.map(p => p.kind[0] + p.aff + '/' + p.target).join(' ')} bag=${s.bag} ${s.status} (${ms}ms)`);
+    if (s.status === 'won') return { days: s.day, log };
+    if (s.status !== 'arrived') return { days: null, log };
+    nightAdvance(s, false);
+    if (s.status === 'lost') break;
+  }
+  return { days: null, log };
+}
+for (const def of LEVELS) {
+  const g0 = createGame(Object.assign({}, def, { maxDays: 10 }));
+  const t1 = performance.now();
+  const ex = solve(g0, 10);
+  const dt = (performance.now() - t1).toFixed(0);
+  const hd = bfs(g0, g0.houses[0].x, g0.houses[0].y, null)[g0.houses[1].y * 8 + g0.houses[1].x];
+  out.push(`${def.id} ${def.name}: EXACT=${ex.days} (${dt}ms) houseDist=${hd}`);
+  const r = run(def, 12);
+  out.push(`${def.id} ${def.name}: greedyDays=${r.days} (maxDays=${def.maxDays}, par=${def.par}) ${r.days && r.days <= def.par ? 'OK' : r.days && r.days <= def.maxDays ? 'PAR?' : 'FAIL'}`);
+  out.push(...r.log);
+}
+const t0 = performance.now();
+const keys = [todayKey(), '2026-11-15', '2026-11-16', '2026-11-17'];
+for (const k of keys) {
+  const d = dailyLevel(k);
+  out.push(`daily ${k}: par=${d.par} max=${d.maxDays} seed=${d.seed}\n` + d.map.join('\n'));
+}
+out.push('daily gen time ' + (performance.now() - t0).toFixed(0) + 'ms');
+document.getElementById('out').textContent = out.join('\n');
+window.__done = true;
+</script></body></html>
